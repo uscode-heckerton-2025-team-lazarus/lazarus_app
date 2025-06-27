@@ -19,6 +19,12 @@ module.exports = {
       colors: {
         brand: "#FD4F00",
       },
+      fontFamily: {
+        'sans': ['Spoqa Han Sans Neo', 'sans-serif'],
+        'black-han': ['Black Han Sans', 'sans-serif'],
+        'gasoek': ['Gasoek One', 'sans-serif'],
+        'gugi': ['Gugi', 'sans-serif'],
+      },
     },
   },
   plugins: [

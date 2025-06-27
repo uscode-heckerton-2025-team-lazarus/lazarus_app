@@ -27,18 +27,18 @@ const Header = () => {
           >
             여행 계획
           </Link>
-          <a
-            href="#destinations"
+          <Link
+            href="/chatplan"
             className="text-gray-900 font-medium hover:text-blue-600 transition-colors"
           >
             인기 여행지
-          </a>
-          <a
-            href="#guide"
+          </Link>
+          <Link
+            href="/chatplan"
             className="text-gray-900 font-medium hover:text-blue-600 transition-colors"
           >
-            여행 가이드
-          </a>
+            공지사항
+          </Link>
         </nav>
 
         <div className="flex items-center space-x-4">

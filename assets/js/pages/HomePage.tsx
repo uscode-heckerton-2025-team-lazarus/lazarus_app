@@ -149,10 +149,12 @@ const HomePage = () => {
             <p className="text-lg mb-12 text-gray-300 max-w-2xl mx-auto leading-relaxed font-light">
               {slides[currentSlide].description}
             </p>
-            <button className="group relative bg-transparent border border-white/30 text-white px-12 py-4 text-sm font-light tracking-[0.2em] uppercase hover:border-blue-400 transition-all duration-500 overflow-hidden">
+            <Link
+              href="/chatplan"
+              className="inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg text-decoration-none"
+            >
               <span className="relative z-10">여행 계획 시작하기</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-400/20 to-blue-400/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-            </button>
+            </Link>
           </div>
         </div>
 

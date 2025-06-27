@@ -7,24 +7,18 @@ const Header = () => {
     <header className="bg-white px-8 py-6">
       <div className="max-w-full flex justify-between items-center relative">
         <div className="flex items-center space-x-2">
-          <Link to="/" className="text-4xl font-bold text-gray-900 font-gugi">
+          <Link href="/" className="text-4xl font-bold text-gray-900 font-gugi">
             의성 트립봇
           </Link>
         </div>
 
         <nav className="absolute left-1/2 transform -translate-x-1/2 flex space-x-12">
-          <a
-            href="#planning"
+          <Link
+            href="/chatplan"
             className="text-gray-900 font-medium hover:text-blue-600 transition-colors"
           >
             여행 계획
-          </a>
-          <a
-            href="#chatbot"
-            className="text-gray-900 font-medium hover:text-blue-600 transition-colors"
-          >
-            AI 상담
-          </a>
+          </Link>
           <a
             href="#destinations"
             className="text-gray-900 font-medium hover:text-blue-600 transition-colors"

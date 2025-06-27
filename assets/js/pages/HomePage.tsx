@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "@inertiajs/react";
+
 import {
   MessageCircle,
   Send,
@@ -271,9 +273,12 @@ const HomePage = () => {
             {/* 여행 계획 생성 버튼 */}
             <div className="border-t p-4">
               <div className="mb-4 text-center">
-                <button className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                <Link
+                  href="/chatplan"
+                  className="inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg text-decoration-none"
+                >
                   🗺️ 여행 계획 생성하기
-                </button>
+                </Link>
               </div>
 
               {/* 메시지 입력 */}

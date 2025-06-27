@@ -36,6 +36,13 @@ defmodule LazarusAppWeb.Router do
     get "/", PageController, :home
   end
 
+  scope "/", LazarusAppWeb do
+    # pipe_through [:browser, :authenticated]
+    pipe_through [:browser]
+
+    get "/chatplan", ChatPlannerController, :chat_plan
+  end
+
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:lazarus_app, :dev_routes) do
     # If you want to use the LiveDashboard in production, you should put

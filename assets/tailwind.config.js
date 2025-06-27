@@ -17,7 +17,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: "#FD4F00",
+        brand: "#FD4F00", # 꾸에에
       },
     },
   },

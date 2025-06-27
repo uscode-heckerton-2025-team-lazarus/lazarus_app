@@ -31,14 +31,23 @@ defmodule LazarusAppWeb.Router do
   end
 
   scope "/", LazarusAppWeb do
+    pipe_through [:browser, :unauthenticated]
+
+    get "/register", RegisterController, :index
+    post "users/register", RegisterController, :register
+
+    get "/login", LoginController, :index
+    post "users/login", LoginController, :login
+  end
+
+  scope "/", LazarusAppWeb do
     pipe_through [:browser, :auth_optional]
 
     get "/", PageController, :home
   end
 
   scope "/", LazarusAppWeb do
-    # pipe_through [:browser, :authenticated]
-    pipe_through [:browser]
+    pipe_through [:browser, :authenticated]
 
     get "/chatplan", ChatPlannerController, :chat_plan
   end

@@ -84,42 +84,6 @@ const ChatPlannerPage = () => {
     scrollToBottom();
   }, [messages]);
 
-  const saveChat = async (content, type) => {
-    if (!conversationId) {
-      console.log("❌ No conversation ID, skipping save");
-      return;
-    }
-
-    console.log("💬 Saving chat:", { content, type, conversationId });
-    try {
-      const response = await fetch(
-        `/chatplan/conversations/${conversationId}/chats`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": document
-              .querySelector('meta[name="csrf-token"]')
-              ?.getAttribute("content"),
-          },
-          body: JSON.stringify({
-            content: content,
-            type: type,
-          }),
-        },
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("✅ Chat saved:", data);
-      } else {
-        const errorText = await response.text();
-        console.error("❌ Failed to save chat:", response.status, errorText);
-      }
-    } catch (error) {
-      console.error("💥 Error saving chat:", error);
-    }
-  };
 
   const handleSendMessage = async () => {
     if (inputMessage.trim() && conversationId) {
@@ -133,26 +97,63 @@ const ChatPlannerPage = () => {
       setMessages([...messages, userMessage]);
       const currentMessage = inputMessage;
       setInputMessage("");
-
-      // 유저 메시지 저장
-      await saveChat(currentMessage, "user");
-
       setIsTyping(true);
 
-      setTimeout(async () => {
-        const botResponse = {
-          id: messages.length + 2,
-          type: "bot",
-          content:
-            "좋은 질문이네요! 조금 더 구체적으로 알려주시면 더 정확한 추천을 드릴 수 있어요. 여행 인원, 예산, 선호하는 활동 등을 말씀해주세요.",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, botResponse]);
-        setIsTyping(false);
+      try {
+        // 서버에 유저 메시지 전송하고 AI 응답 받기
+        const response = await fetch(
+          `/chatplan/conversations/${conversationId}/chats`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": document
+                .querySelector('meta[name="csrf-token"]')
+                ?.getAttribute("content"),
+            },
+            body: JSON.stringify({
+              content: currentMessage,
+              type: "user",
+            }),
+          },
+        );
 
-        // 봇 응답 저장
-        await saveChat(botResponse.content, "bot");
-      }, 1500);
+        if (response.ok) {
+          const data = await response.json();
+          console.log("✅ Response received:", data);
+          
+          // AI 응답을 UI에 추가
+          setMessages((prev) => [...prev, {
+            id: prev.length + 1,
+            type: "bot",
+            content: data.botResponse.content,
+            timestamp: new Date(),
+          }]);
+        } else {
+          const errorText = await response.text();
+          console.error("❌ Failed to send message:", response.status, errorText);
+          
+          // 에러 발생시 기본 응답 표시
+          setMessages((prev) => [...prev, {
+            id: prev.length + 1,
+            type: "bot",
+            content: "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.",
+            timestamp: new Date(),
+          }]);
+        }
+      } catch (error) {
+        console.error("💥 Error sending message:", error);
+        
+        // 네트워크 에러시 기본 응답 표시
+        setMessages((prev) => [...prev, {
+          id: prev.length + 1,
+          type: "bot",
+          content: "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해주세요.",
+          timestamp: new Date(),
+        }]);
+      } finally {
+        setIsTyping(false);
+      }
     }
   };
 

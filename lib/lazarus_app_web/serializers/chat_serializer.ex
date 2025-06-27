@@ -3,6 +3,7 @@ defmodule LazarusAppWeb.ChatSerializer do
     %{
       id: chat.id,
       message: chat.message,
+      content: chat.message,
       messageType: chat.message_type,
       metadata: chat.metadata,
       conversationId: chat.conversation_id,

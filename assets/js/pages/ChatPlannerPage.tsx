@@ -22,8 +22,10 @@ const ChatPlannerPage = () => {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [hasUserMessage, setHasUserMessage] = useState(false);
+  const [currentView, setCurrentView] = useState("chat"); // "chat" or "planner"
+  const [travelPlan, setTravelPlan] = useState(null);
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   const travelSuggestions = [
     {
@@ -63,7 +65,9 @@ const ChatPlannerPage = () => {
   ];
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -81,12 +85,8 @@ const ChatPlannerPage = () => {
 
       setMessages([...messages, userMessage]);
       setInputMessage("");
-      setIsTyping(true);
 
-      // Set hasUserMessage to true after first user message
-      if (!hasUserMessage) {
-        setHasUserMessage(true);
-      }
+      setIsTyping(true);
 
       setTimeout(() => {
         const botResponse = {
@@ -104,6 +104,42 @@ const ChatPlannerPage = () => {
 
   const handleQuickQuestion = (question) => {
     setInputMessage(question);
+  };
+
+  const handleGeneratePlan = () => {
+    // 채팅 데이터를 기반으로 여행 계획 생성
+    const planData = {
+      destination: "제주도",
+      duration: "2박 3일",
+      budget: "30만원",
+      travelers: "2명",
+      schedule: [
+        {
+          day: 1,
+          activities: [
+            { time: "09:00", activity: "제주공항 도착", location: "제주공항" },
+            { time: "11:00", activity: "렌터카 픽업", location: "제주공항" },
+            { time: "13:00", activity: "점심식사", location: "흑돼지 맛집" },
+            { time: "15:00", activity: "성산일출봉", location: "성산일출봉" },
+            { time: "18:00", activity: "저녁식사", location: "성산포" },
+            { time: "20:00", activity: "숙소 체크인", location: "호텔" }
+          ]
+        },
+        {
+          day: 2,
+          activities: [
+            { time: "08:00", activity: "조식", location: "호텔" },
+            { time: "10:00", activity: "한라산 등반", location: "한라산" },
+            { time: "15:00", activity: "점심식사", location: "한라산 주변" },
+            { time: "17:00", activity: "우도 관광", location: "우도" },
+            { time: "19:00", activity: "저녁식사", location: "우도" }
+          ]
+        }
+      ]
+    };
+    
+    setTravelPlan(planData);
+    setCurrentView("planner");
   };
 
   // Map Component
@@ -124,41 +160,39 @@ const ChatPlannerPage = () => {
 
   // Travel Schedule Component
   const TravelScheduleComponent = () => (
-    <div className="bg-white rounded-lg shadow-lg p-4 h-full">
+    <div className="bg-white rounded-lg shadow-lg p-4 h-full overflow-y-auto">
       <div className="flex items-center mb-3">
         <Calendar className="h-5 w-5 mr-2 text-green-500" />
         <h3 className="font-semibold text-gray-900">여행 일정</h3>
       </div>
-      <div className="space-y-3">
-        <div className="border-l-4 border-blue-500 pl-3">
-          <div className="flex items-center text-sm text-gray-600">
-            <Clock className="h-4 w-4 mr-1" />
-            <span>Day 1 - 오전 9:00</span>
+      <div className="space-y-4">
+        {travelPlan?.schedule?.map((day, dayIndex) => (
+          <div key={dayIndex} className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-3 bg-gray-50 px-3 py-2 rounded-lg">
+              Day {day.day}
+            </h4>
+            <div className="space-y-3">
+              {day.activities.map((activity, activityIndex) => (
+                <div key={activityIndex} className="border-l-4 border-blue-500 pl-3">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span>{activity.time}</span>
+                  </div>
+                  <p className="font-medium text-gray-900">{activity.activity}</p>
+                  <p className="text-sm text-gray-600">{activity.location}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <p className="font-medium text-gray-900">여행지 도착</p>
-        </div>
-        <div className="border-l-4 border-green-500 pl-3">
-          <div className="flex items-center text-sm text-gray-600">
-            <Clock className="h-4 w-4 mr-1" />
-            <span>Day 1 - 오후 2:00</span>
-          </div>
-          <p className="font-medium text-gray-900">주요 관광지 방문</p>
-        </div>
-        <div className="border-l-4 border-purple-500 pl-3">
-          <div className="flex items-center text-sm text-gray-600">
-            <Clock className="h-4 w-4 mr-1" />
-            <span>Day 1 - 저녁 7:00</span>
-          </div>
-          <p className="font-medium text-gray-900">저녁 식사</p>
-        </div>
+        ))}
       </div>
     </div>
   );
 
   return (
     <div className="min-h-[calc(100vh-180px)] bg-gray-50">
-      {!hasUserMessage ? (
-        // Initial chat-only layout
+      {currentView === "chat" ? (
+        // 채팅 화면
         <div className="min-h-[calc(100vh-180px)] flex items-center justify-center p-8">
           <div className="w-full max-w-2xl">
             {/* 헤더 */}
@@ -175,7 +209,7 @@ const ChatPlannerPage = () => {
             {/* 채팅 영역 */}
             <div className="bg-white rounded-xl shadow-lg">
               {/* 메시지 영역 */}
-              <div className="h-96 overflow-y-auto p-6 space-y-4">
+              <div ref={messagesContainerRef} className="h-96 overflow-y-auto p-6 space-y-4 scroll-smooth">
                 {messages.map((message) => (
                   <div
                     key={message.id}
@@ -241,7 +275,7 @@ const ChatPlannerPage = () => {
 
               {/* 입력 영역 */}
               <div className="border-t border-gray-200 p-6">
-                <div className="flex space-x-4">
+                <div className="flex space-x-4 mb-4">
                   <input
                     type="text"
                     value={inputMessage}
@@ -258,116 +292,51 @@ const ChatPlannerPage = () => {
                     <Send className="h-5 w-5" />
                   </button>
                 </div>
+                
+                {/* 여행 계획 생성 버튼 */}
+                {messages.length > 2 && (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={handleGeneratePlan}
+                      className="bg-green-500 text-white rounded-lg px-8 py-3 hover:bg-green-600 transition-colors font-medium"
+                    >
+                      여행 계획 생성하기
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       ) : (
-        // Layout after first message: map + schedule + compact chat
+        // 여행 계획 화면
         <div className="min-h-[calc(100vh-180px)] p-4 space-y-4">
-          {/* Top row: Travel Schedule (left 1/3) and Map (right 2/3) */}
+          {/* 헤더 */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                  <MapPin className="h-6 w-6 mr-2 text-green-500" />
+                  {travelPlan?.destination} 여행 계획
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  {travelPlan?.duration} | {travelPlan?.travelers} | {travelPlan?.budget}
+                </p>
+              </div>
+              <button
+                onClick={() => setCurrentView("chat")}
+                className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 transition-colors"
+              >
+                채팅으로 돌아가기
+              </button>
+            </div>
+          </div>
+
+          {/* 여행 계획 상세 */}
           <div className="grid grid-cols-3 gap-4 h-[500px]">
             <TravelScheduleComponent />
             <div className="col-span-2 h-full">
               <MapComponent />
-            </div>
-          </div>
-
-          {/* Bottom row: Compact chat */}
-          <div
-            className="bg-white rounded-lg shadow-lg flex flex-col"
-            style={{ height: "calc(100vh - 32rem)" }}
-          >
-            {/* Chat header */}
-            <div className="border-b border-gray-200 p-4">
-              <h3 className="font-semibold text-gray-900 flex items-center">
-                <Bot className="h-5 w-5 mr-2 text-blue-500" />
-                여행 플래너 AI
-              </h3>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`flex max-w-md items-start space-x-2 ${
-                      message.type === "user"
-                        ? "flex-row-reverse space-x-reverse"
-                        : ""
-                    }`}
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        message.type === "user" ? "bg-blue-500" : "bg-gray-300"
-                      }`}
-                    >
-                      {message.type === "user" ? (
-                        <User className="h-4 w-4 text-white" />
-                      ) : (
-                        <Bot className="h-4 w-4 text-gray-600" />
-                      )}
-                    </div>
-                    <div
-                      className={`px-3 py-2 rounded-lg ${
-                        message.type === "user"
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 border border-gray-200"
-                      }`}
-                    >
-                      <p className="text-sm">{message.content}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="flex items-start space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                      <Bot className="h-4 w-4 text-gray-600" />
-                    </div>
-                    <div className="bg-gray-100 border border-gray-200 px-3 py-2 rounded-lg">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.1s" }}
-                        ></div>
-                        <div
-                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                          style={{ animationDelay: "0.2s" }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input */}
-            <div className="border-t border-gray-200 p-4">
-              <div className="flex space-x-3">
-                <input
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="여행 계획에 대해 무엇이든 물어보세요..."
-                  className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim()}
-                  className="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
-              </div>
             </div>
           </div>
         </div>

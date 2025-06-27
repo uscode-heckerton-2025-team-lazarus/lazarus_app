@@ -34,10 +34,10 @@ defmodule LazarusAppWeb.Router do
     pipe_through [:browser, :unauthenticated]
 
     get "/register", RegisterController, :index
-    post "users/register", RegisterController, :register
+    post "/register", RegisterController, :register
 
     get "/login", LoginController, :index
-    post "users/login", LoginController, :login
+    post "/login", LoginController, :login
   end
 
   scope "/", LazarusAppWeb do
@@ -50,6 +50,8 @@ defmodule LazarusAppWeb.Router do
     pipe_through [:browser, :authenticated]
 
     get "/chatplan", ChatPlannerController, :chat_plan
+    post "/chatplan/conversations", ChatPlannerController, :create_conversation
+    post "/chatplan/conversations/:conversation_id/chats", ChatPlannerController, :create_chat
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

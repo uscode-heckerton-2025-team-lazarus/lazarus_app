@@ -39,7 +39,7 @@ defmodule LazarusApp.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :password, :name, :nickname])
     |> validate_email(opts)
     |> validate_password(opts)
   end

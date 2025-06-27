@@ -16,7 +16,7 @@ defmodule LazarusAppWeb.LoginController do
     case Accounts.validate_login(params) do
       {:ok, user} ->
         user_params = %{
-          "remember_me" => remember_me
+          "remember_me" => if(remember_me, do: "true", else: "false")
         }
 
         conn

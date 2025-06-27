@@ -45,6 +45,54 @@ defmodule LazarusApp.Accounts do
   end
 
   @doc """
+  Validates login credentials and returns user or error changeset.
+
+  ## Examples
+
+      iex> validate_login(%{"email" => "valid@example.com", "password" => "correct_password"})
+      {:ok, %User{}}
+
+      iex> validate_login(%{"email" => "invalid@example.com", "password" => "wrong_password"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def validate_login(attrs) do
+    email = Map.get(attrs, "email", "")
+    password = Map.get(attrs, "password", "")
+
+    changeset = 
+      %User{}
+      |> Ecto.Changeset.cast(attrs, [:email, :password])
+      |> validate_login_email()
+      |> validate_login_password()
+
+    if changeset.valid? do
+      case get_user_by_email_and_password(email, password) do
+        %User{} = user ->
+          {:ok, user}
+        nil ->
+          {:error, 
+            changeset
+            |> Ecto.Changeset.add_error(:general, "이메일 또는 비밀번호가 올바르지 않습니다")
+          }
+      end
+    else
+      {:error, changeset}
+    end
+  end
+
+  defp validate_login_email(changeset) do
+    changeset
+    |> Ecto.Changeset.validate_required([:email], message: "이메일을 입력해주세요")
+    |> Ecto.Changeset.validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "올바른 이메일 형식이 아닙니다")
+  end
+
+  defp validate_login_password(changeset) do
+    changeset
+    |> Ecto.Changeset.validate_required([:password], message: "비밀번호를 입력해주세요")
+  end
+
+  @doc """
   Gets a single user.
 
   Raises `Ecto.NoResultsError` if the User does not exist.

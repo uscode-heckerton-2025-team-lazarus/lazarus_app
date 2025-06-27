@@ -3,3 +3,9 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+.error-message {
+  color: #ff4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 4px;
+}

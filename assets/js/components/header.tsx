@@ -5,10 +5,10 @@ import { Plane, LogIn, UserPlus, LogOut } from "lucide-react";
 const Header = () => {
   const { props } = usePage();
   const user = props.user;
-  const { post } = useForm();
+  const { delete: destroy } = useForm();
 
   const handleLogout = () => {
-    post("users/logout");
+    destroy("users/log_out");
   };
 
   return (

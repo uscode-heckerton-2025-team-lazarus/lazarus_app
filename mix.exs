@@ -61,7 +61,12 @@ defmodule LazarusApp.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:inertia, "~> 2.0"},
-      {:langchain, "0.3.3"}
+      {:langchain, "0.3.3"},
+      {:pgvector, "0.2.0"},
+      {:bumblebee, "~> 0.5"},
+      {:nx, "~> 0.7"},
+      {:exla, ">= 0.0.0"},
+      {:explorer, "~> 0.5"}
     ]
   end
 

@@ -11,6 +11,8 @@ config :langchain, google_ai_key: System.fetch_env!("GOOGLEAI_API_KEY")
 
 config :inertia, endpoint: LazarusAppWeb.Endpoint
 
+config :lazarus_app, LazarusApp.Repo, types: LazarusApp.PostgrexTypes
+
 config :lazarus_app,
   ecto_repos: [LazarusApp.Repo],
   generators: [timestamp_type: :utc_datetime]

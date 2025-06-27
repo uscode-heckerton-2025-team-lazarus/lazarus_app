@@ -17,7 +17,12 @@ defmodule LazarusApp.Application do
       # Start a worker by calling: LazarusApp.Worker.start_link(arg)
       # {LazarusApp.Worker, arg},
       # Start to serve requests, typically the last entry
-      LazarusAppWeb.Endpoint
+      LazarusAppWeb.Endpoint,
+      {Nx.Serving,
+      serving: Model.SearchAttractionModel.serving(defn_options: [compiler: EXLA]),
+      batch_size: 16,
+      batch_timeout: 100,
+      name: SearchAttractionModel}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

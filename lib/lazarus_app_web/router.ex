@@ -52,6 +52,8 @@ defmodule LazarusAppWeb.Router do
     get "/chatplan", ChatPlannerController, :chat_plan
     post "/chatplan/conversations", ChatPlannerController, :create_conversation
     post "/chatplan/conversations/:conversation_id/chats", ChatPlannerController, :create_chat
+
+    get "/travel-plan/:conversation_id/result", TravelPlanController, :result
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development

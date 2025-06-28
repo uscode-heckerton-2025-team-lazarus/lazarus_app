@@ -84,7 +84,6 @@ const ChatPlannerPage = () => {
     scrollToBottom();
   }, [messages]);
 
-
   const handleSendMessage = async () => {
     if (inputMessage.trim() && conversationId) {
       const userMessage = {
@@ -121,36 +120,51 @@ const ChatPlannerPage = () => {
         if (response.ok) {
           const data = await response.json();
           console.log("✅ Response received:", data);
-          
+
           // AI 응답을 UI에 추가
-          setMessages((prev) => [...prev, {
-            id: prev.length + 1,
-            type: "bot",
-            content: data.botResponse.content,
-            timestamp: new Date(),
-          }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: prev.length + 1,
+              type: "bot",
+              content: data.botResponse.content,
+              timestamp: new Date(),
+            },
+          ]);
         } else {
           const errorText = await response.text();
-          console.error("❌ Failed to send message:", response.status, errorText);
-          
+          console.error(
+            "❌ Failed to send message:",
+            response.status,
+            errorText,
+          );
+
           // 에러 발생시 기본 응답 표시
-          setMessages((prev) => [...prev, {
-            id: prev.length + 1,
-            type: "bot",
-            content: "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.",
-            timestamp: new Date(),
-          }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: prev.length + 1,
+              type: "bot",
+              content:
+                "죄송합니다. 일시적인 오류가 발생했습니다. 다시 시도해주세요.",
+              timestamp: new Date(),
+            },
+          ]);
         }
       } catch (error) {
         console.error("💥 Error sending message:", error);
-        
+
         // 네트워크 에러시 기본 응답 표시
-        setMessages((prev) => [...prev, {
-          id: prev.length + 1,
-          type: "bot",
-          content: "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해주세요.",
-          timestamp: new Date(),
-        }]);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: prev.length + 1,
+            type: "bot",
+            content:
+              "네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해주세요.",
+            timestamp: new Date(),
+          },
+        ]);
       } finally {
         setIsTyping(false);
       }
@@ -162,39 +176,9 @@ const ChatPlannerPage = () => {
   };
 
   const handleGeneratePlan = () => {
-    // 채팅 데이터를 기반으로 여행 계획 생성
-    const planData = {
-      destination: "제주도",
-      duration: "2박 3일",
-      budget: "30만원",
-      travelers: "2명",
-      schedule: [
-        {
-          day: 1,
-          activities: [
-            { time: "09:00", activity: "제주공항 도착", location: "제주공항" },
-            { time: "11:00", activity: "렌터카 픽업", location: "제주공항" },
-            { time: "13:00", activity: "점심식사", location: "흑돼지 맛집" },
-            { time: "15:00", activity: "성산일출봉", location: "성산일출봉" },
-            { time: "18:00", activity: "저녁식사", location: "성산포" },
-            { time: "20:00", activity: "숙소 체크인", location: "호텔" },
-          ],
-        },
-        {
-          day: 2,
-          activities: [
-            { time: "08:00", activity: "조식", location: "호텔" },
-            { time: "10:00", activity: "한라산 등반", location: "한라산" },
-            { time: "15:00", activity: "점심식사", location: "한라산 주변" },
-            { time: "17:00", activity: "우도 관광", location: "우도" },
-            { time: "19:00", activity: "저녁식사", location: "우도" },
-          ],
-        },
-      ],
-    };
-
-    setTravelPlan(planData);
-    setCurrentView("planner");
+    if (conversationId) {
+      router.get(`/travel-plan/${conversationId}/result`);
+    }
   };
 
   // Map Component

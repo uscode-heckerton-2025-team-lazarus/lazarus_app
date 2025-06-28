@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "@inertiajs/react";
-
 import {
   MessageCircle,
   Send,
@@ -8,20 +6,289 @@ import {
   Globe,
   ChevronLeft,
   ChevronRight,
+  MapPin,
+  Clock,
 } from "lucide-react";
+
+// Leaflet 지도 컴포넌트 (제공된 예시 기반)
+const MapComponent = ({ locations, itinerary }) => {
+  const mapRef = useRef(null);
+  const [map, setMap] = useState(null);
+  const [markersLayer, setMarkersLayer] = useState(null);
+  const [routeMarkersLayer, setRouteMarkersLayer] = useState(null);
+  const [routeLayer, setRouteLayer] = useState(null);
+  const [isMapReady, setIsMapReady] = useState(false);
+  
+
+  // 의성군 중심 좌표 (제공된 예시와 동일)
+  const UISEONG_CENTER = [36.3526576, 128.6970053];
+
+  // Leaflet 라이브러리 로드 및 지도 초기화
+  useEffect(() => {
+    const loadLeaflet = async () => {
+      // Leaflet CSS 로드 (제공된 예시와 동일)
+      if (!document.querySelector('link[href*="leaflet"]')) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+      }
+
+      // Leaflet JS 로드 (제공된 예시와 동일)
+      if (!window.L) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          script.onload = () => resolve(window.L);
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+      return window.L;
+    };
+
+    const initializeMap = async () => {
+      try {
+        const L = await loadLeaflet();
+        
+        if (mapRef.current && !map) {
+          // 지도 생성 (제공된 예시와 동일)
+          const mapInstance = L.map(mapRef.current).setView(UISEONG_CENTER, 12);
+          
+          // 타일 레이어 추가 (제공된 예시와 동일)
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+          }).addTo(mapInstance);
+          
+          // 레이어 그룹 생성 (제공된 예시와 동일)
+          const markers = L.layerGroup().addTo(mapInstance);
+          const routeMarkers = L.layerGroup().addTo(mapInstance);
+          
+          setMap(mapInstance);
+          setMarkersLayer(markers);
+          setRouteMarkersLayer(routeMarkers);
+          setIsMapReady(true);
+          
+          console.log('Leaflet 지도 초기화 완료');
+        }
+      } catch (error) {
+        console.error('Leaflet 로드 실패:', error);
+      }
+    };
+
+    initializeMap();
+
+    // 컴포넌트 언마운트 시 지도 정리
+    return () => {
+      if (map) {
+        map.remove();
+      }
+    };
+  }, []);
+
+  // 마커 생성 함수 (제공된 예시 기반)
+  const createMarker = (attraction, number, isRoute = false) => {
+    if (!window.L) return null;
+
+    const markerClass = isRoute ? 'route-marker' : 'custom-marker';
+    const icon = window.L.divIcon({
+      className: markerClass,
+      html: `<div style="
+        background-color: #e53e3e;
+        color: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 12px;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      ">${number}</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+    
+    const marker = window.L.marker([attraction.lat, attraction.lng], { icon })
+      .bindPopup(createPopupContent(attraction));
+    
+    // 마커 클릭 이벤트 (제공된 예시와 동일)
+    marker.on('click', () => {
+      highlightAttraction(attraction);
+    });
+    
+    // 마우스 오버 이벤트 (제공된 예시와 동일)
+    marker.on('mouseover', () => {
+      marker.openPopup();
+    });
+    
+    return marker;
+  };
+
+  // 팝업 내용 생성 (제공된 예시 기반)
+  const createPopupContent = (attraction) => {
+    return `
+      <div class="popup-content" style="padding: 10px; min-width: 200px;">
+        <div class="popup-title" style="font-weight: bold; color: #e53e3e; margin-bottom: 5px;">
+          ${attraction.time || '시간 미정'}
+        </div>
+        <div class="popup-type" style="font-size: 16px; font-weight: 500; margin-bottom: 5px;">
+          ${attraction.location || attraction.name}
+        </div>
+        <div class="popup-description" style="color: #666; font-size: 14px;">
+          ${attraction.description || '관광지 방문'}
+        </div>
+      </div>
+    `;
+  };
+
+  // 관광지 하이라이트 (제공된 예시와 동일)
+  const highlightAttraction = (attraction) => {
+    if (map) {
+      map.setView([attraction.lat, attraction.lng], 15);
+      console.log(`${attraction.location || attraction.name}을(를) 선택했습니다.`);
+    }
+  };
+
+  // 추천 경로 표시 (제공된 예시 기반)
+  const displayRecommendedRoute = (route) => {
+    if (!map || !routeMarkersLayer || !window.L) return;
+
+    // 기존 경로 제거
+    if (routeLayer) {
+      map.removeLayer(routeLayer);
+      setRouteLayer(null);
+    }
+    routeMarkersLayer.clearLayers();
+    
+    if (route.length === 0) return;
+    
+    // 경로 마커 표시 (제공된 예시와 동일)
+    route.forEach((attraction, index) => {
+      const marker = createMarker(attraction, index + 1, true);
+      if (marker) {
+        routeMarkersLayer.addLayer(marker);
+      }
+    });
+    
+    // 경로 선 그리기 (제공된 예시와 동일)
+    if (route.length > 1) {
+      const routeCoords = route.map(attraction => [attraction.lat, attraction.lng]);
+      
+      const polyline = window.L.polyline(routeCoords, {
+        color: '#e53e3e',
+        weight: 4,
+        opacity: 0.8,
+        dashArray: '10, 10'
+      }).addTo(map);
+      
+      setRouteLayer(polyline);
+      
+      // 경로에 애니메이션 효과 추가 (제공된 예시와 동일)
+      animateRoute(polyline);
+    }
+    
+    // 지도 뷰를 경로에 맞게 조정 (제공된 예시와 동일)
+    if (route.length > 0) {
+      const group = new window.L.featureGroup(routeMarkersLayer.getLayers());
+      map.fitBounds(group.getBounds().pad(0.1));
+    }
+  };
+
+  // 경로 애니메이션 (제공된 예시와 동일)
+  const animateRoute = (polyline) => {
+    let offset = 0;
+    const animate = () => {
+      offset += 2;
+      if (offset > 20) offset = 0;
+      
+      polyline.setStyle({
+        dashOffset: offset
+      });
+      
+      requestAnimationFrame(animate);
+    };
+    animate();
+  };
+
+  // 일정이 변경될 때 지도 업데이트
+  useEffect(() => {
+    if (!isMapReady || !map || !routeMarkersLayer || !itinerary || itinerary.length === 0) {
+      return;
+    }
+
+    console.log('지도 업데이트 시작:', itinerary);
+
+    // 일정을 경로 형태로 변환
+    const allPoints = [];
+    itinerary.forEach((day) => {
+      if (day.activities) {
+        day.activities.forEach((activity) => {
+          if (activity.lat && activity.lng) {
+            allPoints.push({
+              lat: parseFloat(activity.lat),
+              lng: parseFloat(activity.lng),
+              location: activity.location,
+              time: activity.time,
+              description: activity.description,
+              name: activity.location
+            });
+          }
+        });
+      }
+    });
+
+    // 추천 경로 표시
+    displayRecommendedRoute(allPoints);
+
+    console.log('지도 업데이트 완료');
+  }, [isMapReady, map, routeMarkersLayer, itinerary]);
+
+  return (
+    <div 
+      ref={mapRef} 
+      style={{ 
+        width: '100%', 
+        height: '400px',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0'
+      }}
+    />
+  );
+};
 
 const HomePage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [userMessage, setUserMessage] = useState("");
+  const [conversationText, setConversationText] = useState(null);
   const [chatMessages, setChatMessages] = useState([
     {
       id: 1,
       type: "bot",
-      message:
-        "안녕하세요! 🌟 여행 계획 도우미입니다. 어떤 여행을 계획하고 계신가요?",
+      message: "안녕하세요! 🌟 여행 계획 도우미입니다. 몇 가지 질문을 통해 맞춤형 여행 계획을 만들어드릴게요!",
     },
   ]);
+  const [itinerary, setItinerary] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tripDays, setTripDays] = useState(2);
+  const [wakeTime, setWakeTime] = useState("07:00");
+  const [breakfastTime, setBreakfastTime] = useState("08:00");
+  const [lunchTime, setLunchTime] = useState("12:00");
+  const [dinnerTime, setDinnerTime] = useState("18:00");
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [questionsCompleted, setQuestionsCompleted] = useState(false);
   const chatMessagesRef = useRef(null);
+
+  // 하드코딩된 질문들
+  const predefinedQuestions = [
+    "어느 지역으로 여행을 가고 싶으신가요? (예: 경상북도 의성군)",
+    "방문하고 싶은 테마가 있나요? (사찰, 박물관, 자연, 문화재, 테마파크, 관광명소,카페,식당)",
+    "어떤 활동을 선호하시나요? (관광, 휴식, 체험활동, 사진촬영 등)",
+    "여행 중 특별히 피하고 싶은 장소나 활동이 있나요?"
+  ];
 
   // 슬라이드 데이터
   const slides = [
@@ -75,6 +342,141 @@ const HomePage = () => {
     },
   ];
 
+  // API 호출 함수
+  const callExtractInfoAPI = async (text, size) => {
+    try {
+      console.log('Extract Info API 호출:', { text, size });
+      const response = await fetch('http://localhost:8000/recommand/extract-info', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          size: size
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Extract Info API 응답:', result);
+      return result;
+    } catch (error) {
+      console.error('Extract info API 오류:', error);
+      return null;
+    }
+  };
+
+  const callTourPathAPI = async (text, locations, size) => {
+    try {
+      console.log('Tour Path API 호출:', { text, locations, size });
+      const response = await fetch('http://localhost:8000/recommand/tour-path', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: text,
+          locations: locations,
+          size: size,
+          wake_time: wakeTime,
+          breakfast_time: breakfastTime,
+          lunch_time: lunchTime,
+          dinner_time: dinnerTime
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Tour Path API 응답:', result);
+      return result;
+    } catch (error) {
+      console.error('Tour path API 오류:', error);
+      return null;
+    }
+  };
+
+  var tempConversationText = "";
+
+  // 자동 여행 계획 생성 함수
+  const autoGenerateTravelPlan = async () => {
+    setIsLoading(true);
+    
+    try {
+      // 전체 대화 내용 합치기
+      tempConversationText = chatMessages
+        .map(msg => `${msg.type}: ${msg.message}`)
+        .join('\n');
+      
+      
+
+      console.log("1===========");
+      console.log(tempConversationText);
+      console.log("===========");
+
+
+      console.log("2===========");
+      console.log(conversationText);
+      console.log("===========");
+
+      console.log('대화 내용:', tempConversationText);
+      
+      setConversationText(tempConversationText);
+      
+      console.log("3===========");
+      console.log(conversationText);
+      console.log("===========");
+
+      
+      // 1단계: 정보 추출
+      const extractedInfo = await callExtractInfoAPI(tempConversationText, 5);
+      
+
+      if (!extractedInfo) {
+        throw new Error('정보 추출 실패');
+      }
+
+      // 2단계: 여행 경로 생성
+      
+      const tourPlan = await callTourPathAPI(tempConversationText, extractedInfo, tripDays);
+      
+      if (!tourPlan) {
+        throw new Error('여행 계획 생성 실패');
+      }
+
+      console.log('생성된 여행 계획:', tourPlan);
+      setItinerary(tourPlan);
+      
+      // 봇 응답 추가
+      const botResponse = {
+        id: chatMessages.length + 1,
+        type: "bot",
+        message: `${tripDays}일간의 맞춤형 여행 계획이 생성되었습니다! 🗺️ 지도에서 경로를 확인해보세요. 다른 관광지를 원하시거나 시간을 조정하고 싶으시면 말씀해주세요!`
+      };
+      
+      setChatMessages(prev => [...prev, botResponse]);
+      
+    } catch (error) {
+      console.error('여행 계획 생성 오류:', error);
+      
+      const errorResponse = {
+        id: chatMessages.length + 1,
+        type: "bot",
+        message: `죄송합니다. 여행 계획 생성 중 오류가 발생했습니다: ${error.message}. 백엔드 서버가 실행 중인지 확인해주세요.`
+      };
+      
+      setChatMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // 메시지 전송 함수
   const handleSendMessage = () => {
     if (userMessage.trim()) {
@@ -84,16 +486,56 @@ const HomePage = () => {
         message: userMessage,
       };
 
-      // 간단한 봇 응답 시뮬레이션
-      const botResponse = {
-        id: chatMessages.length + 2,
-        type: "bot",
-        message:
-          "좋은 질문이네요! 더 자세한 정보를 원하시면 저희 서비스를 이용해보세요. 완전한 여행 계획을 생성하려면 아래 버튼을 클릭하여 개인 맞춤형 여행 일정을 만들어보세요.",
-      };
-
-      setChatMessages([...chatMessages, newUserMessage, botResponse]);
+      setChatMessages(prev => [...prev, newUserMessage]);
       setUserMessage("");
+
+      // 하드코딩된 질문이 아직 남아있는 경우
+      if (currentQuestionIndex < predefinedQuestions.length - 1) {
+        setTimeout(() => {
+          const nextQuestionIndex = currentQuestionIndex + 1;
+          const botResponse = {
+            id: chatMessages.length + 2,
+            type: "bot",
+            message: predefinedQuestions[nextQuestionIndex],
+          };
+          
+          setChatMessages(prev => [...prev, botResponse]);
+          setCurrentQuestionIndex(nextQuestionIndex);
+        }, 1000);
+      } else if (!questionsCompleted) {
+        // 모든 질문이 완료된 경우
+        setQuestionsCompleted(true);
+        setTimeout(() => {
+          const completionMessage = {
+            id: chatMessages.length + 2,
+            type: "bot",
+            message: "감사합니다! 입력해주신 정보를 바탕으로 맞춤형 여행 계획을 생성하고 있습니다... ✨",
+          };
+          
+          setChatMessages(prev => [...prev, completionMessage]);
+          
+          // 자동으로 여행 계획 생성
+          setTimeout(() => {
+            autoGenerateTravelPlan();
+          }, 2000);
+        }, 1000);
+      } else {
+        // 질문 완료 후 추가 대화 - 시간 조정 등 요청 처리
+        setTimeout(() => {
+          const botResponse = {
+            id: chatMessages.length + 2,
+            type: "bot",
+            message: "요청사항을 반영하여 새로운 여행 계획을 생성하고 있습니다... 🔄",
+          };
+          
+          setChatMessages(prev => [...prev, botResponse]);
+          
+          // 새로운 요청이 있으면 다시 여행 계획 생성
+          setTimeout(() => {
+            autoGenerateTravelPlan();
+          }, 1000);
+        }, 1000);
+      }
 
       // 메시지 추가 후 스크롤을 아래로 이동
       setTimeout(() => {
@@ -104,6 +546,34 @@ const HomePage = () => {
       }, 100);
     }
   };
+
+  // 수동 여행 계획 생성 함수 (버튼 클릭용)
+  const manualGenerateTravelPlan = () => {
+    if (questionsCompleted) {
+      autoGenerateTravelPlan();
+    } else {
+      const warningMessage = {
+        id: chatMessages.length + 1,
+        type: "bot",
+        message: "먼저 위의 질문들에 답변해주세요! 더 정확한 여행 계획을 위해 필요합니다. 😊",
+      };
+      setChatMessages(prev => [...prev, warningMessage]);
+    }
+  };
+
+  // 컴포넌트 마운트 시 첫 번째 질문 표시
+  useEffect(() => {
+    if (currentQuestionIndex === 0 && chatMessages.length === 1) {
+      setTimeout(() => {
+        const firstQuestion = {
+          id: 2,
+          type: "bot",
+          message: predefinedQuestions[0],
+        };
+        setChatMessages(prev => [...prev, firstQuestion]);
+      }, 1500);
+    }
+  }, []);
 
   // 자동 슬라이드
   useEffect(() => {
@@ -149,12 +619,13 @@ const HomePage = () => {
             <p className="text-lg mb-12 text-gray-300 max-w-2xl mx-auto leading-relaxed font-light">
               {slides[currentSlide].description}
             </p>
-            <Link
-              href="/chatplan"
-              className="inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg text-decoration-none"
+            <button 
+              onClick={() => document.getElementById('chat-section').scrollIntoView({ behavior: 'smooth' })}
+              className="group relative bg-transparent border border-white/30 text-white px-12 py-4 text-sm font-light tracking-[0.2em] uppercase hover:border-blue-400 transition-all duration-500 overflow-hidden"
             >
               <span className="relative z-10">여행 계획 시작하기</span>
-            </Link>
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400/0 via-blue-400/20 to-blue-400/0 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+            </button>
           </div>
         </div>
 
@@ -225,8 +696,8 @@ const HomePage = () => {
       </section>
 
       {/* 챗봇 체험 섹션 */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-8">
+      <section id="chat-section" className="py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               지금 바로 여행 계획을 시작해보세요
@@ -236,70 +707,229 @@ const HomePage = () => {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* 채팅 헤더 */}
-            <div className="bg-blue-500 text-white p-4 flex items-center">
-              <MessageCircle className="h-6 w-6 mr-3" />
-              <h3 className="text-lg font-semibold">
-                여행 플래닝 AI 어시스턴트
-              </h3>
-              <div className="ml-auto flex items-center">
-                <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                <span className="text-sm">온라인</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* 채팅 섹션 */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              {/* 채팅 헤더 */}
+              <div className="bg-blue-500 text-white p-4 flex items-center">
+                <MessageCircle className="h-6 w-6 mr-3" />
+                <h3 className="text-lg font-semibold">
+                  여행 플래닝 AI 어시스턴트
+                </h3>
+                <div className="ml-auto flex items-center">
+                  <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+                  <span className="text-sm">온라인</span>
+                </div>
               </div>
-            </div>
 
-            {/* 채팅 메시지 */}
-            <div
-              ref={chatMessagesRef}
-              className="h-96 overflow-y-auto p-6 space-y-4"
-            >
-              {chatMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                      msg.type === "user"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-900"
-                    }`}
-                  >
-                    {msg.message}
+              {/* 여행 설정 */}
+              <div className="p-4 bg-gray-50 border-b">
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      여행 일수
+                    </label>
+                    <select
+                      value={tripDays}
+                      onChange={(e) => setTripDays(parseInt(e.target.value))}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    >
+                      <option value={1}>당일치기</option>
+                      <option value={2}>1박 2일</option>
+                      <option value={3}>2박 3일</option>
+                      <option value={4}>3박 4일</option>
+                      <option value={5}>4박 5일</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      기상 시간
+                    </label>
+                    <input
+                      type="time"
+                      value={wakeTime}
+                      onChange={(e) => setWakeTime(e.target.value)}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    />
                   </div>
                 </div>
-              ))}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      아침식사
+                    </label>
+                    <input
+                      type="time"
+                      value={breakfastTime}
+                      onChange={(e) => setBreakfastTime(e.target.value)}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      점심식사
+                    </label>
+                    <input
+                      type="time"
+                      value={lunchTime}
+                      onChange={(e) => setLunchTime(e.target.value)}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      저녁식사
+                    </label>
+                    <input
+                      type="time"
+                      value={dinnerTime}
+                      onChange={(e) => setDinnerTime(e.target.value)}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 진행 상황 표시 */}
+              {!questionsCompleted && (
+                <div className="p-4 bg-blue-50 border-b">
+                  <div className="flex items-center justify-between text-sm text-blue-700">
+                    <span>질문 진행률</span>
+                    <span>{currentQuestionIndex + 1} / {predefinedQuestions.length}</span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${((currentQuestionIndex + 1) / predefinedQuestions.length) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+
+              {/* 채팅 메시지 */}
+              <div
+                ref={chatMessagesRef}
+                className="h-96 overflow-y-auto p-6 space-y-4"
+              >
+                {chatMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex ${msg.type === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        msg.type === "user"
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-100 text-gray-900"
+                      }`}
+                    >
+                      {msg.message}
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-2xl">
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                        <span>여행 계획을 생성하고 있습니다...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 여행 계획 생성 버튼 */}
+              <div className="border-t p-4">
+                <div className="mb-4 text-center">
+                  <button 
+                    onClick={manualGenerateTravelPlan}
+                    disabled={isLoading}
+                    className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${
+                      questionsCompleted 
+                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600" 
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    }`}
+                  >
+                    {isLoading ? "생성 중..." : questionsCompleted ? "🗺️ 새 여행 계획 생성하기" : "🗺️ 질문 완료 후 이용 가능"}
+                  </button>
+                </div>
+
+                {/* 메시지 입력 */}
+                <div className="flex space-x-4">
+                  <input
+                    type="text"
+                    value={userMessage}
+                    onChange={(e) => setUserMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder={questionsCompleted ? "시간 조정이나 추가 요청사항을 입력하세요... (예: 모든 스케줄을 2시 이후로 배치해줘)" : "위 질문에 답변해주세요..."}
+                    className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition-colors"
+                  >
+                    <Send className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* 여행 계획 생성 버튼 */}
-            <div className="border-t p-4">
-              <div className="mb-4 text-center">
-                <Link
-                  href="/chatplan"
-                  className="inline-block bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-full font-semibold hover:from-purple-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg text-decoration-none"
-                >
-                  🗺️ 여행 계획 생성하기
-                </Link>
+            {/* 지도 및 일정 섹션 */}
+            <div className="space-y-6">
+              {/* 지도 */}
+              <div className="bg-white rounded-2xl shadow-xl p-6">
+                <div className="flex items-center mb-4">
+                  <MapPin className="h-6 w-6 text-blue-500 mr-2" />
+                  <h3 className="text-lg font-semibold">여행 경로</h3>
+                </div>
+                {itinerary.length > 0 ? (
+                  <MapComponent locations={[]} itinerary={itinerary} />
+                ) : (
+                  <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div className="text-center text-gray-500">
+                      <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>여행 계획이 생성되면<br />지도에 경로가 표시됩니다</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* 메시지 입력 */}
-              <div className="flex space-x-4">
-                <input
-                  type="text"
-                  value={userMessage}
-                  onChange={(e) => setUserMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="여행에 대해 무엇이든 물어보세요..."
-                  className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition-colors"
-                >
-                  <Send className="h-6 w-6" />
-                </button>
-              </div>
+              {/* 일정 표시 */}
+              {itinerary.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-xl p-6">
+                  <div className="flex items-center mb-4">
+                    <Clock className="h-6 w-6 text-green-500 mr-2" />
+                    <h3 className="text-lg font-semibold">여행 일정</h3>
+                  </div>
+                  <div className="space-y-4">
+                    {itinerary.map((day) => (
+                      <div key={day.day} className="border-l-4 border-blue-500 pl-4">
+                        <h4 className="font-semibold text-gray-900 mb-2">
+                          {day.day}일차
+                        </h4>
+                        <div className="space-y-2">
+                          {day.activities && day.activities.map((activity, index) => (
+                            <div key={`${day.day}-${index}`} className="flex items-start space-x-3">
+                              <span className="text-sm font-medium text-blue-600 min-w-[50px]">
+                                {activity.time}
+                              </span>
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  {activity.location}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  {activity.description}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -309,3 +939,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+

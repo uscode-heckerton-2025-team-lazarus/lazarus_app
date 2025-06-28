@@ -346,7 +346,8 @@ const HomePage = () => {
   const callExtractInfoAPI = async (text, size) => {
     try {
       console.log('Extract Info API 호출:', { text, size });
-      const response = await fetch('http://localhost:8000/recommand/extract-info', {
+      //const response = await fetch('http://localhost:8000/recommand/extract-info', {
+      const response = await fetch('http://35.206.126.116:8000/recommand/extract-info', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -373,7 +374,7 @@ const HomePage = () => {
   const callTourPathAPI = async (text, locations, size) => {
     try {
       console.log('Tour Path API 호출:', { text, locations, size });
-      const response = await fetch('http://localhost:8000/recommand/tour-path', {
+      const response = await fetch('http://35.206.126.116:8000/recommand/tour-path', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

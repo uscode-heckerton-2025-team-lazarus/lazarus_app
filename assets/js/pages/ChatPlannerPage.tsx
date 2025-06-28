@@ -18,6 +18,7 @@ const ChatPlannerPage = () => {
   const [travelPlan, setTravelPlan] = useState(null);
   const [conversationId, setConversationId] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
@@ -177,6 +178,7 @@ const ChatPlannerPage = () => {
 
   const handleGeneratePlan = () => {
     if (conversationId) {
+      setIsGeneratingPlan(true);
       router.get(`/travel-plan/${conversationId}/result`);
     }
   };
@@ -354,9 +356,17 @@ const ChatPlannerPage = () => {
                   <div className="flex justify-center">
                     <button
                       onClick={handleGeneratePlan}
-                      className="bg-green-500 text-white rounded-lg px-8 py-3 hover:bg-green-600 transition-colors font-medium"
+                      disabled={isGeneratingPlan}
+                      className="bg-green-500 text-white rounded-lg px-8 py-3 hover:bg-green-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      여행 계획 생성하기
+                      {isGeneratingPlan ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>여행 계획 생성 중...</span>
+                        </>
+                      ) : (
+                        <span>여행 계획 생성하기</span>
+                      )}
                     </button>
                   </div>
                 )}

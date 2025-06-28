@@ -405,35 +405,19 @@ const HomePage = () => {
   var tempConversationText = "";
 
   // 자동 여행 계획 생성 함수
-  const autoGenerateTravelPlan = async () => {
+  //const autoGenerateTravelPlan = async () => {
+  const autoGenerateTravelPlan = async (overrideMessages = null) => {
     setIsLoading(true);
     
     try {
       // 전체 대화 내용 합치기
-      tempConversationText = chatMessages
+      //tempConversationText = chatMessages
+      const base = overrideMessages ?? chatMessages;
+      tempConversationText = base
         .map(msg => `${msg.type}: ${msg.message}`)
         .join('\n');
       
-      
-
-      console.log("1===========");
-      console.log(tempConversationText);
-      console.log("===========");
-
-
-      console.log("2===========");
-      console.log(conversationText);
-      console.log("===========");
-
-      console.log('대화 내용:', tempConversationText);
-      
       setConversationText(tempConversationText);
-      
-      console.log("3===========");
-      console.log(conversationText);
-      console.log("===========");
-
-      
       // 1단계: 정보 추출
       const extractedInfo = await callExtractInfoAPI(tempConversationText, 5);
       
@@ -478,74 +462,136 @@ const HomePage = () => {
   };
 
   // 메시지 전송 함수
-  const handleSendMessage = () => {
-    if (userMessage.trim()) {
-      const newUserMessage = {
-        id: chatMessages.length + 1,
-        type: "user",
-        message: userMessage,
-      };
+  // const handleSendMessage = () => {
+  //   if (userMessage.trim()) {
+  //     const newUserMessage = {
+  //       id: chatMessages.length + 1,
+  //       type: "user",
+  //       message: userMessage,
+  //     };
 
-      setChatMessages(prev => [...prev, newUserMessage]);
-      setUserMessage("");
+  //     //setChatMessages(prev => [...prev, newUserMessage]);
+  //     setChatMessages(prev => [...prev, newUserMessage]);
+  //     autoGenerateTravelPlan([...chatMessages, newUserMessage]);
+  //     setUserMessage("");
 
-      // 하드코딩된 질문이 아직 남아있는 경우
-      if (currentQuestionIndex < predefinedQuestions.length - 1) {
-        setTimeout(() => {
-          const nextQuestionIndex = currentQuestionIndex + 1;
-          const botResponse = {
-            id: chatMessages.length + 2,
-            type: "bot",
-            message: predefinedQuestions[nextQuestionIndex],
-          };
+  //     // 하드코딩된 질문이 아직 남아있는 경우
+  //     if (currentQuestionIndex < predefinedQuestions.length - 1) {
+  //       setTimeout(() => {
+  //         const nextQuestionIndex = currentQuestionIndex + 1;
+  //         const botResponse = {
+  //           id: chatMessages.length + 2,
+  //           type: "bot",
+  //           message: predefinedQuestions[nextQuestionIndex],
+  //         };
           
-          setChatMessages(prev => [...prev, botResponse]);
-          setCurrentQuestionIndex(nextQuestionIndex);
-        }, 1000);
-      } else if (!questionsCompleted) {
-        // 모든 질문이 완료된 경우
-        setQuestionsCompleted(true);
-        setTimeout(() => {
-          const completionMessage = {
-            id: chatMessages.length + 2,
-            type: "bot",
-            message: "감사합니다! 입력해주신 정보를 바탕으로 맞춤형 여행 계획을 생성하고 있습니다... ✨",
-          };
+  //         setChatMessages(prev => [...prev, botResponse]);
+  //         setCurrentQuestionIndex(nextQuestionIndex);
+  //       }, 1000);
+  //     } else if (!questionsCompleted) {
+  //       // 모든 질문이 완료된 경우
+  //       setQuestionsCompleted(true);
+  //       setTimeout(() => {
+  //         const completionMessage = {
+  //           id: chatMessages.length + 2,
+  //           type: "bot",
+  //           message: "감사합니다! 입력해주신 정보를 바탕으로 맞춤형 여행 계획을 생성하고 있습니다... ✨",
+  //         };
           
-          setChatMessages(prev => [...prev, completionMessage]);
+  //         setChatMessages(prev => [...prev, completionMessage]);
           
-          // 자동으로 여행 계획 생성
-          setTimeout(() => {
-            autoGenerateTravelPlan();
-          }, 2000);
-        }, 1000);
-      } else {
-        // 질문 완료 후 추가 대화 - 시간 조정 등 요청 처리
-        setTimeout(() => {
-          const botResponse = {
-            id: chatMessages.length + 2,
-            type: "bot",
-            message: "요청사항을 반영하여 새로운 여행 계획을 생성하고 있습니다... 🔄",
-          };
+  //         // 자동으로 여행 계획 생성
+  //         setTimeout(() => {
+  //           autoGenerateTravelPlan();
+  //         }, 2000);
+  //       }, 1000);
+  //     } else {
+  //       // 질문 완료 후 추가 대화 - 시간 조정 등 요청 처리
+  //       setTimeout(() => {
+  //         const botResponse = {
+  //           id: chatMessages.length + 2,
+  //           type: "bot",
+  //           message: "요청사항을 반영하여 새로운 여행 계획을 생성하고 있습니다... 🔄",
+  //         };
           
-          setChatMessages(prev => [...prev, botResponse]);
+  //         setChatMessages(prev => [...prev, botResponse]);
           
-          // 새로운 요청이 있으면 다시 여행 계획 생성
-          setTimeout(() => {
-            autoGenerateTravelPlan();
-          }, 1000);
-        }, 1000);
-      }
+  //         // 새로운 요청이 있으면 다시 여행 계획 생성
+  //         setTimeout(() => {
+  //           autoGenerateTravelPlan();
+  //         }, 1000);
+  //       }, 1000);
+  //     }
 
-      // 메시지 추가 후 스크롤을 아래로 이동
-      setTimeout(() => {
-        if (chatMessagesRef.current) {
-          chatMessagesRef.current.scrollTop =
-            chatMessagesRef.current.scrollHeight;
-        }
-      }, 100);
-    }
+  //     // 메시지 추가 후 스크롤을 아래로 이동
+  //     setTimeout(() => {
+  //       if (chatMessagesRef.current) {
+  //         chatMessagesRef.current.scrollTop =
+  //           chatMessagesRef.current.scrollHeight;
+  //       }
+  //     }, 100);
+  //   }
+  // };
+  // --- 기존 handleSendMessage 대신 이 함수 전체를 통째로 붙여넣으세요 ---
+const handleSendMessage = () => {
+  if (!userMessage.trim()) return;
+
+  // ❶ 유저 메시지 객체 생성
+  const newUserMessage = {
+    id: chatMessages.length + 1,
+    type: "user",
+    message: userMessage,
   };
+
+  // ❷ 채팅 리스트에 추가
+  setChatMessages(prev => [...prev, newUserMessage]);
+  setUserMessage("");
+
+  // ❸ 아직 1~3번째 질문(인덱스 0~2) 답변 중이면 → 질문만 던지고 API 호출은 안 함
+  if (currentQuestionIndex < predefinedQuestions.length - 1) {
+    setTimeout(() => {
+      const nextIndex = currentQuestionIndex + 1;
+      setChatMessages(prev => [
+        ...prev,
+        { id: newUserMessage.id + 1, type: "bot", message: predefinedQuestions[nextIndex] }
+      ]);
+      setCurrentQuestionIndex(nextIndex);
+    }, 1000);
+
+  // ❹ 4번째 질문(인덱스 3) 답변 직후 → 질문 완료 표시 + 2초 뒤 첫 API 호출
+  } else if (!questionsCompleted) {
+    setQuestionsCompleted(true);
+    setTimeout(() => {
+      setChatMessages(prev => [
+        ...prev,
+        { id: newUserMessage.id + 1, type: "bot", message: "감사합니다! 입력해주신 정보를 바탕으로 맞춤형 여행 계획을 생성하고 있습니다... ✨" }
+      ]);
+    }, 1000);
+    setTimeout(() => {
+      autoGenerateTravelPlan([...chatMessages, newUserMessage]);
+    }, 2000);
+
+  // ❺ 그 이후(추가 요청) → 매 엔터마다 API 호출
+  } else {
+    setTimeout(() => {
+      setChatMessages(prev => [
+        ...prev,
+        { id: newUserMessage.id + 1, type: "bot", message: "요청사항을 반영하여 새로운 여행 계획을 생성하고 있습니다... 🔄" }
+      ]);
+    }, 1000);
+    setTimeout(() => {
+      autoGenerateTravelPlan([...chatMessages, newUserMessage]);
+    }, 1000);
+  }
+
+  // ❻ 스크롤 자동 이동
+  setTimeout(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, 100);
+};
+
 
   // 수동 여행 계획 생성 함수 (버튼 클릭용)
   const manualGenerateTravelPlan = () => {

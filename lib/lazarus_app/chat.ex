@@ -151,6 +151,14 @@ defmodule LazarusApp.Chat do
     |> Repo.all()
   end
 
+  def list_chats_by_message_type_of_user(conversation_id) do
+    Chat
+    |> where([c], c.conversation_id == ^conversation_id
+    and c.message_type == "user")
+    |> order_by([c], asc: c.inserted_at)
+    |> Repo.all()
+  end
+
   @doc """
   Gets a single chat.
 

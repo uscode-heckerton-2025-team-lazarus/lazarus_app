@@ -1,7 +1,19 @@
 defmodule LazarusAppWeb.TravelPlanController do
   use LazarusAppWeb, :controller
 
+  alias LazarusApp.Chat
+  alias LazarusApp.Tourism
+  alias LazarusApp.AiService
+
   def result(conn, %{"conversation_id" => conversation_id}) do
+    user_chat_history =
+      Chat.list_chats_by_message_type_of_user(conversation_id)
+      |> Enum.map_join(" ", & &1.message)
+
+    recommand_spots = Tourism.search(user_chat_history, 5)
+    IO.inspect(recommand_spots)
+
+
     # 임시 여행 계획 데이터 (실제로는 conversation_id를 통해 데이터베이스에서 가져옴)
     travel_plan = %{
       destination: "제주도",

@@ -37,11 +37,12 @@ defmodule LazarusApp.Tourism do
   """
   def get_attraction!(id), do: Repo.get!(Attraction, id)
 
-  def search(query) do
+  def search(query, limit) do
     %{embedding: embedding} = Model.SearchAttractionModel.predict(query)
 
     Attraction
     |> order_by([a], fragment("l2_distance(?, ?)", a.embedding, ^embedding))
+    |> limit(^limit)
     |> Repo.all()
   end
 

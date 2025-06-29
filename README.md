@@ -4,6 +4,8 @@
 
 - [서비스 주소 ](https://2669-222-103-99-235.ngrok-free.app/)
 
+- [슬라이드](https://docs.google.com/presentation/d/e/2PACX-1vSf9GWb-fUbmzvbBhR73DgeOa80MI22BvTk8n_ojhg7kG3okUBnJXaoQZVn2ErShkX4CoMIH7_Fvm6J/pub?start=false&loop=false&delayms=3000)
+
 - [영상 설명 주소](https://drive.google.com/file/d/1WZbFQKFg_6pzsGqw71y3uyhS8I0rKUdH/view?usp=sharing)
 
 To start your Phoenix server:

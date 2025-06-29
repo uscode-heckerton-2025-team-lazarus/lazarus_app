@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  # PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:15
+    container_name: lazarus_postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - lazarus_network
+    restart: unless-stopped
+
+  # Lazarus 애플리케이션
+  lazarus:
+    image: sh95119/lazarus:latest
+    container_name: lazarus_app
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres"
+      SECRET_KEY_BASE: "b914c674bf7fb2310ba7429a48a6a864a743f8d199db764505fe84f780eeef134a0e98eaa644c491e563515d876dd3429ad40c92d01738b26a14703ad66b4989"
+      PHX_HOST: "0.0.0.0"
+      PORT: "4000"
+    ports:
+      - "0.0.0.0:4000:4000"
+    networks:
+      - lazarus_network
+    restart: unless-stopped
+
+# 네트워크 정의
+networks:
+  lazarus_network:
+    driver: bridge
+
+# 볼륨 정의 (데이터 영속성)
+volumes:
+  postgres_data:

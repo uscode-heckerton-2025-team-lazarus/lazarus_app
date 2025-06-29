@@ -18,7 +18,6 @@ const MapComponent = ({ locations, itinerary }) => {
   const [routeMarkersLayer, setRouteMarkersLayer] = useState(null);
   const [routeLayer, setRouteLayer] = useState(null);
   const [isMapReady, setIsMapReady] = useState(false);
-  
 
   // 의성군 중심 좌표 (제공된 예시와 동일)
   const UISEONG_CENTER = [36.3526576, 128.6970053];
@@ -28,17 +27,17 @@ const MapComponent = ({ locations, itinerary }) => {
     const loadLeaflet = async () => {
       // Leaflet CSS 로드 (제공된 예시와 동일)
       if (!document.querySelector('link[href*="leaflet"]')) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
         document.head.appendChild(link);
       }
 
       // Leaflet JS 로드 (제공된 예시와 동일)
       if (!window.L) {
         return new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+          const script = document.createElement("script");
+          script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
           script.onload = () => resolve(window.L);
           script.onerror = reject;
           document.head.appendChild(script);
@@ -50,30 +49,30 @@ const MapComponent = ({ locations, itinerary }) => {
     const initializeMap = async () => {
       try {
         const L = await loadLeaflet();
-        
+
         if (mapRef.current && !map) {
           // 지도 생성 (제공된 예시와 동일)
           const mapInstance = L.map(mapRef.current).setView(UISEONG_CENTER, 12);
-          
+
           // 타일 레이어 추가 (제공된 예시와 동일)
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 18
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "© OpenStreetMap contributors",
+            maxZoom: 18,
           }).addTo(mapInstance);
-          
+
           // 레이어 그룹 생성 (제공된 예시와 동일)
           const markers = L.layerGroup().addTo(mapInstance);
           const routeMarkers = L.layerGroup().addTo(mapInstance);
-          
+
           setMap(mapInstance);
           setMarkersLayer(markers);
           setRouteMarkersLayer(routeMarkers);
           setIsMapReady(true);
-          
-          console.log('Leaflet 지도 초기화 완료');
+
+          console.log("Leaflet 지도 초기화 완료");
         }
       } catch (error) {
-        console.error('Leaflet 로드 실패:', error);
+        console.error("Leaflet 로드 실패:", error);
       }
     };
 
@@ -91,7 +90,7 @@ const MapComponent = ({ locations, itinerary }) => {
   const createMarker = (attraction, number, isRoute = false) => {
     if (!window.L) return null;
 
-    const markerClass = isRoute ? 'route-marker' : 'custom-marker';
+    const markerClass = isRoute ? "route-marker" : "custom-marker";
     const icon = window.L.divIcon({
       className: markerClass,
       html: `<div style="
@@ -109,22 +108,23 @@ const MapComponent = ({ locations, itinerary }) => {
         box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       ">${number}</div>`,
       iconSize: [30, 30],
-      iconAnchor: [15, 15]
+      iconAnchor: [15, 15],
     });
-    
-    const marker = window.L.marker([attraction.lat, attraction.lng], { icon })
-      .bindPopup(createPopupContent(attraction));
-    
+
+    const marker = window.L.marker([attraction.lat, attraction.lng], {
+      icon,
+    }).bindPopup(createPopupContent(attraction));
+
     // 마커 클릭 이벤트 (제공된 예시와 동일)
-    marker.on('click', () => {
+    marker.on("click", () => {
       highlightAttraction(attraction);
     });
-    
+
     // 마우스 오버 이벤트 (제공된 예시와 동일)
-    marker.on('mouseover', () => {
+    marker.on("mouseover", () => {
       marker.openPopup();
     });
-    
+
     return marker;
   };
 
@@ -133,13 +133,13 @@ const MapComponent = ({ locations, itinerary }) => {
     return `
       <div class="popup-content" style="padding: 10px; min-width: 200px;">
         <div class="popup-title" style="font-weight: bold; color: #e53e3e; margin-bottom: 5px;">
-          ${attraction.time || '시간 미정'}
+          ${attraction.time || "시간 미정"}
         </div>
         <div class="popup-type" style="font-size: 16px; font-weight: 500; margin-bottom: 5px;">
           ${attraction.location || attraction.name}
         </div>
         <div class="popup-description" style="color: #666; font-size: 14px;">
-          ${attraction.description || '관광지 방문'}
+          ${attraction.description || "관광지 방문"}
         </div>
       </div>
     `;
@@ -149,7 +149,9 @@ const MapComponent = ({ locations, itinerary }) => {
   const highlightAttraction = (attraction) => {
     if (map) {
       map.setView([attraction.lat, attraction.lng], 15);
-      console.log(`${attraction.location || attraction.name}을(를) 선택했습니다.`);
+      console.log(
+        `${attraction.location || attraction.name}을(를) 선택했습니다.`,
+      );
     }
   };
 
@@ -163,9 +165,9 @@ const MapComponent = ({ locations, itinerary }) => {
       setRouteLayer(null);
     }
     routeMarkersLayer.clearLayers();
-    
+
     if (route.length === 0) return;
-    
+
     // 경로 마커 표시 (제공된 예시와 동일)
     route.forEach((attraction, index) => {
       const marker = createMarker(attraction, index + 1, true);
@@ -173,24 +175,27 @@ const MapComponent = ({ locations, itinerary }) => {
         routeMarkersLayer.addLayer(marker);
       }
     });
-    
+
     // 경로 선 그리기 (제공된 예시와 동일)
     if (route.length > 1) {
-      const routeCoords = route.map(attraction => [attraction.lat, attraction.lng]);
-      
+      const routeCoords = route.map((attraction) => [
+        attraction.lat,
+        attraction.lng,
+      ]);
+
       const polyline = window.L.polyline(routeCoords, {
-        color: '#e53e3e',
+        color: "#e53e3e",
         weight: 4,
         opacity: 0.8,
-        dashArray: '10, 10'
+        dashArray: "10, 10",
       }).addTo(map);
-      
+
       setRouteLayer(polyline);
-      
+
       // 경로에 애니메이션 효과 추가 (제공된 예시와 동일)
       animateRoute(polyline);
     }
-    
+
     // 지도 뷰를 경로에 맞게 조정 (제공된 예시와 동일)
     if (route.length > 0) {
       const group = new window.L.featureGroup(routeMarkersLayer.getLayers());
@@ -204,11 +209,11 @@ const MapComponent = ({ locations, itinerary }) => {
     const animate = () => {
       offset += 2;
       if (offset > 20) offset = 0;
-      
+
       polyline.setStyle({
-        dashOffset: offset
+        dashOffset: offset,
       });
-      
+
       requestAnimationFrame(animate);
     };
     animate();
@@ -216,11 +221,17 @@ const MapComponent = ({ locations, itinerary }) => {
 
   // 일정이 변경될 때 지도 업데이트
   useEffect(() => {
-    if (!isMapReady || !map || !routeMarkersLayer || !itinerary || itinerary.length === 0) {
+    if (
+      !isMapReady ||
+      !map ||
+      !routeMarkersLayer ||
+      !itinerary ||
+      itinerary.length === 0
+    ) {
       return;
     }
 
-    console.log('지도 업데이트 시작:', itinerary);
+    console.log("지도 업데이트 시작:", itinerary);
 
     // 일정을 경로 형태로 변환
     const allPoints = [];
@@ -234,7 +245,7 @@ const MapComponent = ({ locations, itinerary }) => {
               location: activity.location,
               time: activity.time,
               description: activity.description,
-              name: activity.location
+              name: activity.location,
             });
           }
         });
@@ -244,17 +255,17 @@ const MapComponent = ({ locations, itinerary }) => {
     // 추천 경로 표시
     displayRecommendedRoute(allPoints);
 
-    console.log('지도 업데이트 완료');
+    console.log("지도 업데이트 완료");
   }, [isMapReady, map, routeMarkersLayer, itinerary]);
 
   return (
-    <div 
-      ref={mapRef} 
-      style={{ 
-        width: '100%', 
-        height: '400px',
-        borderRadius: '8px',
-        border: '1px solid #e2e8f0'
+    <div
+      ref={mapRef}
+      style={{
+        width: "100%",
+        height: "400px",
+        borderRadius: "8px",
+        border: "1px solid #e2e8f0",
       }}
     />
   );
@@ -268,7 +279,8 @@ const HomePage = () => {
     {
       id: 1,
       type: "bot",
-      message: "안녕하세요! 🌟 여행 계획 도우미입니다. 몇 가지 질문을 통해 맞춤형 여행 계획을 만들어드릴게요!",
+      message:
+        "안녕하세요! 🌟 여행 계획 도우미입니다. 몇 가지 질문을 통해 맞춤형 여행 계획을 만들어드릴게요!",
     },
   ]);
   const [itinerary, setItinerary] = useState([]);
@@ -287,7 +299,7 @@ const HomePage = () => {
     "어느 지역으로 여행을 가고 싶으신가요? (예: 경상북도 의성군)",
     "방문하고 싶은 테마가 있나요? (사찰, 박물관, 자연, 문화재, 테마파크, 관광명소,카페,식당)",
     "어떤 활동을 선호하시나요? (관광, 휴식, 체험활동, 사진촬영 등)",
-    "여행 중 특별히 피하고 싶은 장소나 활동이 있나요?"
+    "여행 중 특별히 피하고 싶은 장소나 활동이 있나요?",
   ];
 
   // 슬라이드 데이터
@@ -345,60 +357,66 @@ const HomePage = () => {
   // API 호출 함수
   const callExtractInfoAPI = async (text, size) => {
     try {
-      console.log('Extract Info API 호출:', { text, size });
+      console.log("Extract Info API 호출:", { text, size });
       //const response = await fetch('http://localhost:8000/recommand/extract-info', {
-      const response = await fetch('http://35.206.126.116:8000/recommand/extract-info', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        "https://d6f9-35-206-126-116.ngrok-free.app/recommand/extract-info",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: text,
+            size: size,
+          }),
         },
-        body: JSON.stringify({
-          text: text,
-          size: size
-        })
-      });
-      
+      );
+
       if (!response.ok) {
         throw new Error(`API 호출 실패: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      console.log('Extract Info API 응답:', result);
+      console.log("Extract Info API 응답:", result);
       return result;
     } catch (error) {
-      console.error('Extract info API 오류:', error);
+      console.error("Extract info API 오류:", error);
       return null;
     }
   };
 
   const callTourPathAPI = async (text, locations, size) => {
     try {
-      console.log('Tour Path API 호출:', { text, locations, size });
-      const response = await fetch('http://35.206.126.116:8000/recommand/tour-path', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      console.log("Tour Path API 호출:", { text, locations, size });
+      const response = await fetch(
+        "https://d6f9-35-206-126-116.ngrok-free.app/recommand/tour-path",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: text,
+            locations: locations,
+            size: size,
+            wake_time: wakeTime,
+            breakfast_time: breakfastTime,
+            lunch_time: lunchTime,
+            dinner_time: dinnerTime,
+          }),
         },
-        body: JSON.stringify({
-          text: text,
-          locations: locations,
-          size: size,
-          wake_time: wakeTime,
-          breakfast_time: breakfastTime,
-          lunch_time: lunchTime,
-          dinner_time: dinnerTime
-        })
-      });
-      
+      );
+
       if (!response.ok) {
         throw new Error(`API 호출 실패: ${response.status}`);
       }
-      
+
       const result = await response.json();
-      console.log('Tour Path API 응답:', result);
+      console.log("Tour Path API 응답:", result);
       return result;
     } catch (error) {
-      console.error('Tour path API 오류:', error);
+      console.error("Tour path API 오류:", error);
       return null;
     }
   };
@@ -409,54 +427,56 @@ const HomePage = () => {
   //const autoGenerateTravelPlan = async () => {
   const autoGenerateTravelPlan = async (overrideMessages = null) => {
     setIsLoading(true);
-    
+
     try {
       // 전체 대화 내용 합치기
       //tempConversationText = chatMessages
       const base = overrideMessages ?? chatMessages;
       tempConversationText = base
-        .map(msg => `${msg.type}: ${msg.message}`)
-        .join('\n');
-      
+        .map((msg) => `${msg.type}: ${msg.message}`)
+        .join("\n");
+
       setConversationText(tempConversationText);
       // 1단계: 정보 추출
       const extractedInfo = await callExtractInfoAPI(tempConversationText, 5);
-      
 
       if (!extractedInfo) {
-        throw new Error('정보 추출 실패');
+        throw new Error("정보 추출 실패");
       }
 
       // 2단계: 여행 경로 생성
-      
-      const tourPlan = await callTourPathAPI(tempConversationText, extractedInfo, tripDays);
-      
+
+      const tourPlan = await callTourPathAPI(
+        tempConversationText,
+        extractedInfo,
+        tripDays,
+      );
+
       if (!tourPlan) {
-        throw new Error('여행 계획 생성 실패');
+        throw new Error("여행 계획 생성 실패");
       }
 
-      console.log('생성된 여행 계획:', tourPlan);
+      console.log("생성된 여행 계획:", tourPlan);
       setItinerary(tourPlan);
-      
+
       // 봇 응답 추가
       const botResponse = {
         id: chatMessages.length + 1,
         type: "bot",
-        message: `${tripDays}일간의 맞춤형 여행 계획이 생성되었습니다! 🗺️ 지도에서 경로를 확인해보세요. 다른 관광지를 원하시거나 시간을 조정하고 싶으시면 말씀해주세요!`
+        message: `${tripDays}일간의 맞춤형 여행 계획이 생성되었습니다! 🗺️ 지도에서 경로를 확인해보세요. 다른 관광지를 원하시거나 시간을 조정하고 싶으시면 말씀해주세요!`,
       };
-      
-      setChatMessages(prev => [...prev, botResponse]);
-      
+
+      setChatMessages((prev) => [...prev, botResponse]);
     } catch (error) {
-      console.error('여행 계획 생성 오류:', error);
-      
+      console.error("여행 계획 생성 오류:", error);
+
       const errorResponse = {
         id: chatMessages.length + 1,
         type: "bot",
-        message: `죄송합니다. 여행 계획 생성 중 오류가 발생했습니다: ${error.message}. 백엔드 서버가 실행 중인지 확인해주세요.`
+        message: `죄송합니다. 여행 계획 생성 중 오류가 발생했습니다: ${error.message}. 백엔드 서버가 실행 중인지 확인해주세요.`,
       };
-      
-      setChatMessages(prev => [...prev, errorResponse]);
+
+      setChatMessages((prev) => [...prev, errorResponse]);
     } finally {
       setIsLoading(false);
     }
@@ -485,7 +505,7 @@ const HomePage = () => {
   //           type: "bot",
   //           message: predefinedQuestions[nextQuestionIndex],
   //         };
-          
+
   //         setChatMessages(prev => [...prev, botResponse]);
   //         setCurrentQuestionIndex(nextQuestionIndex);
   //       }, 1000);
@@ -498,9 +518,9 @@ const HomePage = () => {
   //           type: "bot",
   //           message: "감사합니다! 입력해주신 정보를 바탕으로 맞춤형 여행 계획을 생성하고 있습니다... ✨",
   //         };
-          
+
   //         setChatMessages(prev => [...prev, completionMessage]);
-          
+
   //         // 자동으로 여행 계획 생성
   //         setTimeout(() => {
   //           autoGenerateTravelPlan();
@@ -514,9 +534,9 @@ const HomePage = () => {
   //           type: "bot",
   //           message: "요청사항을 반영하여 새로운 여행 계획을 생성하고 있습니다... 🔄",
   //         };
-          
+
   //         setChatMessages(prev => [...prev, botResponse]);
-          
+
   //         // 새로운 요청이 있으면 다시 여행 계획 생성
   //         setTimeout(() => {
   //           autoGenerateTravelPlan();
@@ -534,65 +554,79 @@ const HomePage = () => {
   //   }
   // };
   // --- 기존 handleSendMessage 대신 이 함수 전체를 통째로 붙여넣으세요 ---
-const handleSendMessage = () => {
-  if (!userMessage.trim()) return;
+  const handleSendMessage = () => {
+    if (!userMessage.trim()) return;
 
-  // ❶ 유저 메시지 객체 생성
-  const newUserMessage = {
-    id: chatMessages.length + 1,
-    type: "user",
-    message: userMessage,
-  };
+    // ❶ 유저 메시지 객체 생성
+    const newUserMessage = {
+      id: chatMessages.length + 1,
+      type: "user",
+      message: userMessage,
+    };
 
-  // ❷ 채팅 리스트에 추가
-  setChatMessages(prev => [...prev, newUserMessage]);
-  setUserMessage("");
+    // ❷ 채팅 리스트에 추가
+    setChatMessages((prev) => [...prev, newUserMessage]);
+    setUserMessage("");
 
-  // ❸ 아직 1~3번째 질문(인덱스 0~2) 답변 중이면 → 질문만 던지고 API 호출은 안 함
-  if (currentQuestionIndex < predefinedQuestions.length - 1) {
-    setTimeout(() => {
-      const nextIndex = currentQuestionIndex + 1;
-      setChatMessages(prev => [
-        ...prev,
-        { id: newUserMessage.id + 1, type: "bot", message: predefinedQuestions[nextIndex] }
-      ]);
-      setCurrentQuestionIndex(nextIndex);
-    }, 1000);
+    // ❸ 아직 1~3번째 질문(인덱스 0~2) 답변 중이면 → 질문만 던지고 API 호출은 안 함
+    if (currentQuestionIndex < predefinedQuestions.length - 1) {
+      setTimeout(() => {
+        const nextIndex = currentQuestionIndex + 1;
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: newUserMessage.id + 1,
+            type: "bot",
+            message: predefinedQuestions[nextIndex],
+          },
+        ]);
+        setCurrentQuestionIndex(nextIndex);
+      }, 1000);
 
-  // ❹ 4번째 질문(인덱스 3) 답변 직후 → 질문 완료 표시 + 2초 뒤 첫 API 호출
-  } else if (!questionsCompleted) {
-    setQuestionsCompleted(true);
-    setTimeout(() => {
-      setChatMessages(prev => [
-        ...prev,
-        { id: newUserMessage.id + 1, type: "bot", message: "감사합니다! 입력해주신 정보를 바탕으로 맞춤형 여행 계획을 생성하고 있습니다... ✨" }
-      ]);
-    }, 1000);
-    setTimeout(() => {
-      autoGenerateTravelPlan([...chatMessages, newUserMessage]);
-    }, 2000);
+      // ❹ 4번째 질문(인덱스 3) 답변 직후 → 질문 완료 표시 + 2초 뒤 첫 API 호출
+    } else if (!questionsCompleted) {
+      setQuestionsCompleted(true);
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: newUserMessage.id + 1,
+            type: "bot",
+            message:
+              "감사합니다! 입력해주신 정보를 바탕으로 맞춤형 여행 계획을 생성하고 있습니다... ✨",
+          },
+        ]);
+      }, 1000);
+      setTimeout(() => {
+        autoGenerateTravelPlan([...chatMessages, newUserMessage]);
+      }, 2000);
 
-  // ❺ 그 이후(추가 요청) → 매 엔터마다 API 호출
-  } else {
-    setTimeout(() => {
-      setChatMessages(prev => [
-        ...prev,
-        { id: newUserMessage.id + 1, type: "bot", message: "요청사항을 반영하여 새로운 여행 계획을 생성하고 있습니다... 🔄" }
-      ]);
-    }, 1000);
-    setTimeout(() => {
-      autoGenerateTravelPlan([...chatMessages, newUserMessage]);
-    }, 1000);
-  }
-
-  // ❻ 스크롤 자동 이동
-  setTimeout(() => {
-    if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+      // ❺ 그 이후(추가 요청) → 매 엔터마다 API 호출
+    } else {
+      setTimeout(() => {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: newUserMessage.id + 1,
+            type: "bot",
+            message:
+              "요청사항을 반영하여 새로운 여행 계획을 생성하고 있습니다... 🔄",
+          },
+        ]);
+      }, 1000);
+      setTimeout(() => {
+        autoGenerateTravelPlan([...chatMessages, newUserMessage]);
+      }, 1000);
     }
-  }, 100);
-};
 
+    // ❻ 스크롤 자동 이동
+    setTimeout(() => {
+      if (chatMessagesRef.current) {
+        chatMessagesRef.current.scrollTop =
+          chatMessagesRef.current.scrollHeight;
+      }
+    }, 100);
+  };
 
   // 수동 여행 계획 생성 함수 (버튼 클릭용)
   const manualGenerateTravelPlan = () => {
@@ -602,9 +636,10 @@ const handleSendMessage = () => {
       const warningMessage = {
         id: chatMessages.length + 1,
         type: "bot",
-        message: "먼저 위의 질문들에 답변해주세요! 더 정확한 여행 계획을 위해 필요합니다. 😊",
+        message:
+          "먼저 위의 질문들에 답변해주세요! 더 정확한 여행 계획을 위해 필요합니다. 😊",
       };
-      setChatMessages(prev => [...prev, warningMessage]);
+      setChatMessages((prev) => [...prev, warningMessage]);
     }
   };
 
@@ -617,7 +652,7 @@ const handleSendMessage = () => {
           type: "bot",
           message: predefinedQuestions[0],
         };
-        setChatMessages(prev => [...prev, firstQuestion]);
+        setChatMessages((prev) => [...prev, firstQuestion]);
       }, 1500);
     }
   }, []);
@@ -666,8 +701,12 @@ const handleSendMessage = () => {
             <p className="text-lg mb-12 text-gray-300 max-w-2xl mx-auto leading-relaxed font-light">
               {slides[currentSlide].description}
             </p>
-            <button 
-              onClick={() => document.getElementById('chat-section').scrollIntoView({ behavior: 'smooth' })}
+            <button
+              onClick={() =>
+                document
+                  .getElementById("chat-section")
+                  .scrollIntoView({ behavior: "smooth" })
+              }
               className="group relative bg-transparent border border-white/30 text-white px-12 py-4 text-sm font-light tracking-[0.2em] uppercase hover:border-blue-400 transition-all duration-500 overflow-hidden"
             >
               <span className="relative z-10">여행 계획 시작하기</span>
@@ -842,12 +881,16 @@ const handleSendMessage = () => {
                 <div className="p-4 bg-blue-50 border-b">
                   <div className="flex items-center justify-between text-sm text-blue-700">
                     <span>질문 진행률</span>
-                    <span>{currentQuestionIndex + 1} / {predefinedQuestions.length}</span>
+                    <span>
+                      {currentQuestionIndex + 1} / {predefinedQuestions.length}
+                    </span>
                   </div>
                   <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-                    <div 
+                    <div
                       className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${((currentQuestionIndex + 1) / predefinedQuestions.length) * 100}%` }}
+                      style={{
+                        width: `${((currentQuestionIndex + 1) / predefinedQuestions.length) * 100}%`,
+                      }}
                     ></div>
                   </div>
                 </div>
@@ -889,16 +932,20 @@ const handleSendMessage = () => {
               {/* 여행 계획 생성 버튼 */}
               <div className="border-t p-4">
                 <div className="mb-4 text-center">
-                  <button 
+                  <button
                     onClick={manualGenerateTravelPlan}
                     disabled={isLoading}
                     className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${
-                      questionsCompleted 
-                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600" 
+                      questionsCompleted
+                        ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    {isLoading ? "생성 중..." : questionsCompleted ? "🗺️ 새 여행 계획 생성하기" : "🗺️ 질문 완료 후 이용 가능"}
+                    {isLoading
+                      ? "생성 중..."
+                      : questionsCompleted
+                        ? "🗺️ 새 여행 계획 생성하기"
+                        : "🗺️ 질문 완료 후 이용 가능"}
                   </button>
                 </div>
 
@@ -909,7 +956,11 @@ const handleSendMessage = () => {
                     value={userMessage}
                     onChange={(e) => setUserMessage(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                    placeholder={questionsCompleted ? "시간 조정이나 추가 요청사항을 입력하세요... (예: 모든 스케줄을 2시 이후로 배치해줘)" : "위 질문에 답변해주세요..."}
+                    placeholder={
+                      questionsCompleted
+                        ? "시간 조정이나 추가 요청사항을 입력하세요... (예: 모든 스케줄을 2시 이후로 배치해줘)"
+                        : "위 질문에 답변해주세요..."
+                    }
                     className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
@@ -936,7 +987,11 @@ const handleSendMessage = () => {
                   <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
                     <div className="text-center text-gray-500">
                       <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>여행 계획이 생성되면<br />지도에 경로가 표시됩니다</p>
+                      <p>
+                        여행 계획이 생성되면
+                        <br />
+                        지도에 경로가 표시됩니다
+                      </p>
                     </div>
                   </div>
                 )}
@@ -951,26 +1006,33 @@ const handleSendMessage = () => {
                   </div>
                   <div className="space-y-4">
                     {itinerary.map((day) => (
-                      <div key={day.day} className="border-l-4 border-blue-500 pl-4">
+                      <div
+                        key={day.day}
+                        className="border-l-4 border-blue-500 pl-4"
+                      >
                         <h4 className="font-semibold text-gray-900 mb-2">
                           {day.day}일차
                         </h4>
                         <div className="space-y-2">
-                          {day.activities && day.activities.map((activity, index) => (
-                            <div key={`${day.day}-${index}`} className="flex items-start space-x-3">
-                              <span className="text-sm font-medium text-blue-600 min-w-[50px]">
-                                {activity.time}
-                              </span>
-                              <div>
-                                <p className="font-medium text-gray-900">
-                                  {activity.location}
-                                </p>
-                                <p className="text-sm text-gray-600">
-                                  {activity.description}
-                                </p>
+                          {day.activities &&
+                            day.activities.map((activity, index) => (
+                              <div
+                                key={`${day.day}-${index}`}
+                                className="flex items-start space-x-3"
+                              >
+                                <span className="text-sm font-medium text-blue-600 min-w-[50px]">
+                                  {activity.time}
+                                </span>
+                                <div>
+                                  <p className="font-medium text-gray-900">
+                                    {activity.location}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    {activity.description}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
                         </div>
                       </div>
                     ))}
@@ -986,4 +1048,3 @@ const handleSendMessage = () => {
 };
 
 export default HomePage;
-

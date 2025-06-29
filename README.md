@@ -1,5 +1,7 @@
 # LazarusApp
 
+[서비스 주소 ](https://2669-222-103-99-235.ngrok-free.app/)
+
 To start your Phoenix server:
 
   * Run `mix setup` to install and setup dependencies

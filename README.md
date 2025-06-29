@@ -1,6 +1,8 @@
 # LazarusApp
 
-[서비스 주소 ](https://2669-222-103-99-235.ngrok-free.app/)
+- [서비스 주소 ](https://2669-222-103-99-235.ngrok-free.app/)
+
+- [영상 설명 주소](https://drive.google.com/file/d/1imdvwwMFjGLwpFZpLiKKbjaqC_uSJ1Aa/view?usp=drive_link)
 
 To start your Phoenix server:
 

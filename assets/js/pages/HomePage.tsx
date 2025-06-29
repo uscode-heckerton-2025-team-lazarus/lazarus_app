@@ -360,7 +360,7 @@ const HomePage = () => {
       console.log("Extract Info API 호출:", { text, size });
       //const response = await fetch('http://localhost:8000/recommand/extract-info', {
       const response = await fetch(
-        "https://d6f9-35-206-126-116.ngrok-free.app/recommand/extract-info",
+        "https://9c44-35-206-126-116.ngrok-free.app/recommand/extract-info",
         {
           method: "POST",
           headers: {
@@ -390,7 +390,7 @@ const HomePage = () => {
     try {
       console.log("Tour Path API 호출:", { text, locations, size });
       const response = await fetch(
-        "https://d6f9-35-206-126-116.ngrok-free.app/recommand/tour-path",
+        "https://9c44-35-206-126-116.ngrok-free.app/recommand/tour-path",
         {
           method: "POST",
           headers: {
